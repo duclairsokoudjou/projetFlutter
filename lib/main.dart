@@ -9,12 +9,10 @@ import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  try {
+
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     runApp(ChangeNotifierProvider(create: (context)=>  CartProvider(), child: const MyApp(),));
-  } catch (e) {
-    print('Firebase initialization error: $e');
-  }
+ 
 }
 
 class MyApp extends StatelessWidget {
