@@ -31,7 +31,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
         _navigateToRoute(context, '/home', HomeScreen());
         break;
       case 1:
-        _navigateToRoute(context, '/food', Food());
+        _navigateToRoute(context, '/Reviews', Food());
         break;
       case 2:
         _navigateToRoute(context, '/myaccount', MyAccount());

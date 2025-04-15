@@ -1,191 +1,197 @@
 import 'package:flutter/material.dart';
-import 'package:login/bottom_nav_bar.dart';
-
-import 'custom_scaffold.dart';
+import 'package:login/cart_provider.dart';
+import 'package:login/custom_scaffold.dart';
+import 'package:provider/provider.dart';
+import 'package:login/purchase_service.dart';
+import 'package:login/purchase.dart';
 
 class MyCart extends StatefulWidget {
-  const MyCart ({super.key});
+  const MyCart({super.key});
 
   @override
   State<MyCart> createState() => _MyCartState();
 }
 
 class _MyCartState extends State<MyCart> {
-  List<String> productNames = [
-    'Shirt 1',
-    'Shirt 2',
-    'Shirt 3',
-    'Shirt 4',
-    'Shirt 5'
+  List<String> images = [
+    'images/1.jpeg',
+    'images/2.jpeg',
+    'images/3.jpeg',
+    'images/4.jpeg',
+    'images/5.jpeg'
   ];
-  List<int> quantities = [1,1,1,1,1];
-  List<double> prices = [2.0,5.99,18.50,3.0,5.0];
-  List<String> images = ['images/1.jpeg','images/2.jpeg','images/3.jpeg','images/4.jpeg','images/5.jpeg'];
 
-  void incrementQuantity(int index){
-    setState(() {
-      quantities[index]++;
-    });
-  }
-  void decrementalQuantity(int index){
-    setState(() {
-      quantities[index]--;
-    });
+  double getCartTotal(List<CartItem> cartItems) {
+    return cartItems.fold(0.0, (sum, item) => sum + item.quantity * item.price);
   }
 
-  double getCarttool(){
-    double total = 0.0;
-    for(int i = 0; i< productNames.length; i++){
-      total += quantities[i] * prices[i];
-    }
-    return total;
+void processCheckout(List<CartItem> cartItems) async {
+  for (var item in cartItems) {
+    Purchase purchase = Purchase(
+      productName: item.name,
+      price: item.price,
+      date: DateTime.now(),
+      quantity: item.quantity,
+      purchaseId: DateTime.now().toIso8601String() + item.name,
+    );
+    await PurchaseService.addPurchase(purchase);
   }
+}
 
-  void showCheckoutDialog(){
+
+
+  void showCheckoutDialog(List<CartItem> cartItems) {
     showDialog(
-        context: context,
-        builder: (context){
-          return AlertDialog(
-            title: Text('Checkout'),
-            content: Text('You have purchased the products'),
-            actions: [
-              TextButton(onPressed: (){
-                Navigator.of(context).pop();
-              },
-                child: Text('Ok'),
-              )
-            ],
-          );
-        }
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Checkout'),
+        content: const Text('You have purchased the products!'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              processCheckout(cartItems);
+              Provider.of<CartProvider>(context, listen: false).clearCart();
+              Navigator.of(context).pop();
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return  CustomScaffold(
+    List<CartItem> cartItems = Provider.of<CartProvider>(context).cartitems;
+
+    return CustomScaffold(
+      showBottomNavBar: true,
+      initialIndex: 1, // Tab Cart actif
       body: SafeArea(
-          child:
-          Padding(
-            padding: EdgeInsets.all(12.0),
-            child: Column(
-              children: [
-                Text(
-                  'CART',
-                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 80,
+              width: MediaQuery.of(context).size.width,
+              decoration: BoxDecoration(color: Colors.green[700]),
+              child: const Padding(
+                padding: EdgeInsets.only(left: 20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Your Cart',
+                      style: TextStyle(fontSize: 22, color: Colors.white),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'All the products you have added!',
+                      style: TextStyle(fontSize: 12, color: Colors.white),
+                    ),
+                  ],
                 ),
-                Expanded(
-                    child: ListView.builder(
-                        itemCount: productNames.length,
-                        itemBuilder: ((context, index){
-                          return Dismissible(
-                            key: Key(productNames[index]),
-                            direction: DismissDirection.endToStart,
-                            onDismissed: (direction){
-                              setState(() {
-                                productNames.remove(index);
-                              });
-                            },
-                            background: Container(
-                              color: Colors.red,
-                              //child: [Icon(Icons.cancel, color: Colors.white)],
-                              alignment: Alignment.centerRight,
-                              padding: EdgeInsets.only(right: 16.0),
-                            ),
-                            child: Container(
-                              margin: EdgeInsets.all(10.0),
-                              padding: EdgeInsets.only(right: 16.0),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            Expanded(
+              child: cartItems.isEmpty
+                  ? const Center(
+                      child: Text(
+                        "Votre panier est vide.",
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(12.0),
+                      itemCount: cartItems.length,
+                      itemBuilder: (context, index) {
+                        CartItem item = cartItems[index];
+                        return Dismissible(
+                          key: Key(item.name),
+                          onDismissed: (_) {
+                            Provider.of<CartProvider>(context, listen: false).removeFromCart(item);
+                          },
+                          background: Container(
+                            color: Colors.red,
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.only(right: 16.0),
+                            child: const Icon(Icons.delete, color: Colors.white),
+                          ),
+                          child: Card(
+                            margin: const EdgeInsets.symmetric(vertical: 8.0),
+                            elevation: 2,
+                            child: ListTile(
+                              leading: Image.asset(
+                                images[index % images.length],
+                                height: 50,
+                                width: 50,
+                                fit: BoxFit.cover,
                               ),
-                              child: Row(
+                              title: Text(item.name),
+                              subtitle: Text('\$${item.price.toStringAsFixed(2)}'),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Image.asset(
-                                    images[index],
-                                    height: 50,
-                                    width: 50,
+                                  IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        if (item.quantity > 1) item.quantity--;
+                                      });
+                                    },
+                                    icon: const Icon(Icons.remove),
                                   ),
-                                  SizedBox(width: 15.0),
-                                  Column(
-                                    children: [
-                                      Text(
-                                        productNames[index],
-                                        style: TextStyle(fontSize: 18.0),
-                                      ),
-                                      Text(
-                                        '\$${prices[index]}',
-                                        style: TextStyle(fontSize: 16, color: Colors.grey),
-                                      ),
-                                    ],
+                                  Text(item.quantity.toString(), style: const TextStyle(fontSize: 16)),
+                                  IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        item.quantity++;
+                                      });
+                                    },
+                                    icon: const Icon(Icons.add),
                                   ),
-                                  Spacer(),
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                          onPressed: (){
-                                            decrementalQuantity(index);
-                                          },
-                                          icon: Icon(Icons.remove)
-                                      ),
-                                      Text(
-                                        quantities[index].toString(),
-                                        style: TextStyle(fontSize: 18.0),
-                                      ),
-                                      IconButton(
-                                        onPressed: () {
-                                          incrementQuantity(index);
-                                        },
-                                        icon: Icon(Icons.add),
-                                      )
-                                    ],
-                                  )
                                 ],
                               ),
                             ),
-                          );
-                        })
-                    )
-                ),
-                Divider(),
-                Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Row(children: [
-                    Text('Cart Total: ',
-                      style: TextStyle(fontSize: 18.0),
+                          ),
+                        );
+                      },
                     ),
-                    SizedBox(width: 50.0),
-                    Text('\$${getCarttool().toStringAsFixed(2)}',
-                      style: TextStyle(
-                          fontSize: 24.0,
-                          fontWeight: FontWeight.bold
-                      ),
-                    )
-                  ],),
-                ),
-                Divider(),
-                Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                          child: ElevatedButton(
-                            onPressed: (){showCheckoutDialog();
-                            },
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                            child: Text('Proceed to Checkout'),
-                          )
-                      )
-                    ],
-                  ),
-                )
-
-              ],
             ),
-          ),
-
+            if (cartItems.isNotEmpty) ...[
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  children: [
+                    const Text('Cart Total:', style: TextStyle(fontSize: 18)),
+                    const Spacer(),
+                    Text(
+                      '\$${getCartTotal(cartItems).toStringAsFixed(2)}',
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => showCheckoutDialog(cartItems),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green[700],
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: const Text('Proceed to Checkout', style: TextStyle(fontSize: 16)),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
-      showBottomNavBar: true,
-      initialIndex: 3,
     );
   }
 }
