@@ -50,13 +50,80 @@ class MyAccount extends StatelessWidget {
                     'My Account',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                   ),
-                )
+                ),
+                ListOfOption(
+                    icon: Icon(
+                      Icons.person_2_outlined,
+                      color: Colors.green,
+                    ),
+                    title: 'Home'
+                ),
+                ListOfOption(
+                    icon: Icon(
+                      Icons.location_city_outlined,
+                      color: Colors.green,
+                    ),
+                    title: 'Adresses'
+                ),
+                ListOfOption(
+                    icon: Icon(
+                      Icons.payment_outlined,
+                      color: Colors.green,
+                    ),
+                    title: 'Payment'
+                ),
+                ListOfOption(
+                    icon: Icon(
+                      Icons.shopping_bag_outlined,
+                      color: Colors.green,
+                    ),
+                    title: 'Orders'
+                ),
+                ListOfOption(
+                    icon: Icon(
+                      Icons.person_2_outlined,
+                      color: Colors.green,
+                    ),
+                    title: 'Home'
+                ),
+                SizedBox(height: 10),
+                Padding(
+                    padding: EdgeInsets.all(10.0),
+                  child: Text(
+                    'Settings',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                  ),
+                ),
+                ListOfOption(
+                    icon: Icon(
+                      Icons.language_outlined,
+                      color: Colors.green,
+                    ),
+                    title: 'Language',
+                ),
               ],
             ),
           )
       ),
       showBottomNavBar: true,
       initialIndex: 2,
+    );
+  }
+}
+
+class ListOfOption extends StatelessWidget{
+  final Icon icon;
+  final String title;
+  const ListOfOption({super.key, required this.icon, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return ListTile(
+      leading: icon,
+      title: Text(title),
+      trailing: Icon(Icons.arrow_forward_ios_outlined, size: 16),
+      onTap: {}(),
     );
   }
 }
