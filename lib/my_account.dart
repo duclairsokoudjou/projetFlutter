@@ -1,19 +1,81 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:login/purchase_service.dart';
 import 'package:login/purchase.dart';
 import 'custom_scaffold.dart';
 
-class MyAccount extends StatelessWidget {
+class MyAccount extends StatefulWidget {
   const MyAccount({super.key});
 
-  // Méthode pour calculer le total d'une commande
-  double calculateOrderTotal(List<Purchase> purchases) {
-    double total = 0.0;
-    for (var purchase in purchases) {
-      total += purchase.price * purchase.quantity;  // Calcul du total de la commande
+  @override
+  State<MyAccount> createState() => _MyAccountState();
+}
+
+class _MyAccountState extends State<MyAccount> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  late User _user;
+  late TextEditingController _nameController;
+  late TextEditingController _passwordController;
+
+  @override
+  void initState() {
+    super.initState();
+    _user = _auth.currentUser!; // Récupérer l'utilisateur actuellement connecté
+    _nameController = TextEditingController(text: _user.displayName); // Initialiser avec le nom actuel
+    _passwordController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  // Fonction pour mettre à jour le nom de l'utilisateur
+  void _updateName() async {
+    try {
+      await _user.updateDisplayName(_nameController.text);
+      await _user.reload();
+      _user = _auth.currentUser!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nom mis à jour avec succès')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur : ${e.toString()}')),
+      );
     }
-    return total;
+  }
+
+  // Fonction pour mettre à jour le mot de passe
+  void _updatePassword() async {
+    try {
+      await _user.updatePassword(_passwordController.text);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Mot de passe mis à jour avec succès')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur : ${e.toString()}')),
+      );
+    }
+  }
+
+  // Fonction pour supprimer le compte
+  void _deleteAccount() async {
+    try {
+      await _user.delete();
+      Navigator.of(context).pop(); // Retourner à l'écran précédent après suppression
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Compte supprimé avec succès')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur : ${e.toString()}')),
+      );
+    }
   }
 
   @override
@@ -37,14 +99,14 @@ class MyAccount extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
                         'e-Commerce App',
                         style: TextStyle(fontSize: 22, color: Colors.white),
                       ),
                       SizedBox(height: 8),
                       Text(
-                        'duclairsokoudjou@gmail.com',
+                        _user.email ?? '', // Affichage de l'email actuel
                         style: TextStyle(fontSize: 12, color: Colors.white),
                       ),
                     ],
@@ -70,15 +132,47 @@ class MyAccount extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Name: John Doe', style: TextStyle(fontSize: 16)),
+                    Text(
+                      'Name: ${_user.displayName ?? 'Nom non défini'}', // Affichage du nom
+                      style: TextStyle(fontSize: 16),
+                    ),
                     const SizedBox(height: 8),
-                    const Text('Email: duclairsokoudjou@gmail.com', style: TextStyle(fontSize: 16)),
+                    Text(
+                      'Email: ${_user.email}', // Affichage de l'email
+                      style: TextStyle(fontSize: 16),
+                    ),
                     const SizedBox(height: 8),
                     ElevatedButton(
                       onPressed: () {
                         // Action pour se déconnecter
+                        _auth.signOut();
+                        Navigator.pushReplacementNamed(context, '/signin');
                       },
                       child: const Text('Logout'),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        // Modifier le nom de l'utilisateur
+                        _updateName();
+                      },
+                      child: const Text('Update Name'),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        // Modifier le mot de passe de l'utilisateur
+                        _updatePassword();
+                      },
+                      child: const Text('Change Password'),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        // Supprimer le compte de l'utilisateur
+                        _deleteAccount();
+                      },
+                      child: const Text('Delete Account'),
                     ),
                   ],
                 ),
