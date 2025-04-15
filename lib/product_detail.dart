@@ -1,5 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:login/cart_provider.dart';
+import 'package:provider/provider.dart';
 
 class ProductDetail extends StatefulWidget {
   const ProductDetail({super.key});
@@ -12,6 +14,14 @@ class _ProductDetailState extends State<ProductDetail> {
 
   int _currentSlide = 0;
   int selectedButton = 2;
+
+
+  void addToCart(){
+    CartItem newItem = CartItem(name: 'shirt', price: 19.99, quantity: 1);
+    Provider.of<CartProvider>(context, listen: false).addToCart(newItem);
+
+  }
+  
 
   void selectButton(int buttonIndex){
       setState(() {
@@ -27,6 +37,7 @@ class _ProductDetailState extends State<ProductDetail> {
 
   @override
   Widget build(BuildContext context) {
+    List<CartItem> cartItems = Provider.of<CartProvider>(context).cartitems;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
