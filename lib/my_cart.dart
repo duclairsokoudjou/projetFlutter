@@ -111,7 +111,7 @@ void processCheckout(List<CartItem> cartItems) async {
               child: cartItems.isEmpty
                   ? const Center(
                       child: Text(
-                        "Votre panier est vide.",
+                        "Your cart is empty",
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                       ),
                     )

@@ -268,7 +268,7 @@ class _MyAccountState extends State<MyAccount> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'e-Commerce App',
+                            'SODUOLIN Commerce',
                             style: TextStyle(
                               fontSize: 24,
                               color: Colors.white,

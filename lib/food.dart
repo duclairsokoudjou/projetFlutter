@@ -22,11 +22,31 @@ class _FoodState extends State<Food> {
   final List<String> titles = ['Shirt 1', 'Shirt 2', 'Shirt 3', 'Shirt 4', 'Shirt 5'];
   final List<String> ratings = ['4.5', '4.2', '4.8', '4.0', '4.3'];
   final List<String> subtitles = ['Classic Fit', 'Slim Fit', 'Premium Cotton', 'Designer Edition', 'Summer Collection'];
- final List<String> pricing = ['\$10', '\$20', '\$30', '\$40', '\$50'];
+  final List<String> pricing = ['\$10', '\$20', '\$30', '\$40', '\$50'];
 
   // Nouveaux états pour la recherche
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+
+  // Données des avis
+  final List<List<Map<String, dynamic>>> _productReviews = [
+    [
+      {'user': 'Jean D.', 'comment': 'Très confortable', 'stars': 4, 'date': '15/03/2024'},
+      {'user': 'Marie L.', 'comment': 'Taille parfaite', 'stars': 5, 'date': '12/03/2024'},
+    ],
+    [
+      {'user': 'Pierre R.', 'comment': 'Matériau de qualité', 'stars': 4, 'date': '10/03/2024'},
+    ],
+    [
+      {'user': 'Sophie M.', 'comment': 'Livraison rapide', 'stars': 5, 'date': '08/03/2024'},
+    ],
+    [
+      {'user': 'Luc T.', 'comment': 'Un peu cher', 'stars': 3, 'date': '05/03/2024'},
+    ],
+    [
+      {'user': 'Emma B.', 'comment': 'Parfait pour l\'été', 'stars': 4, 'date': '01/03/2024'},
+    ],
+  ];
 
   // Filtrage dynamique
   List<int> get _filteredIndices {
@@ -35,14 +55,114 @@ class _FoodState extends State<Food> {
         .toList();
   }
 
+  void _showProductReviews(int index) {
+    final originalIndex = _filteredIndices[index];
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              titles[originalIndex],
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.star, color: Colors.amber[600], size: 20),
+                const SizedBox(width: 4),
+                Text(
+                  '${ratings[originalIndex]} (${_productReviews[originalIndex].length} avis)',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: ListView.separated(
+                itemCount: _productReviews[originalIndex].length,
+                separatorBuilder: (context, index) => const Divider(height: 30),
+                itemBuilder: (context, reviewIndex) {
+                  final review = _productReviews[originalIndex][reviewIndex];
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: Colors.green[100],
+                            child: Icon(Icons.person, color: Colors.green[700]),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            review['user'],
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const Spacer(),
+                          ...List.generate(5, (starIndex) => Icon(
+                            Icons.star,
+                            size: 18,
+                            color: starIndex < review['stars'] 
+                                ? Colors.amber[600] 
+                                : Colors.grey[300],
+                          )),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 50),
+                        child: Text(
+                          review['comment'],
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          review['date'],
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  void _showProductReviews(int index) {
-    // ... [Le code existant de _showProductReviews reste inchangé] ...
   }
 
   @override
@@ -51,7 +171,7 @@ class _FoodState extends State<Food> {
       body: SafeArea(
         child: Column(
           children: [
-            // Barre de recherche avec filtre dynamique
+            // Barre de recherche
             Container(
               height: 80,
               decoration: BoxDecoration(
@@ -78,7 +198,7 @@ class _FoodState extends State<Food> {
                     });
                   },
                   decoration: InputDecoration(
-                    hintText: 'Rechercher un produit...',
+                    hintText: 'Search reviews...',
                     border: InputBorder.none,
                     prefixIcon: Icon(Icons.search, color: Colors.green[700]),
                     suffixIcon: IconButton(
@@ -96,7 +216,7 @@ class _FoodState extends State<Food> {
               ),
             ),
             
-            // Grille filtrée
+            // Grille des produits
             Expanded(
               child: GridView.builder(
                 padding: const EdgeInsets.all(16),
@@ -108,9 +228,9 @@ class _FoodState extends State<Food> {
                 ),
                 itemCount: _filteredIndices.length,
                 itemBuilder: (context, gridIndex) {
-                  final index = _filteredIndices[gridIndex];
+                  final originalIndex = _filteredIndices[gridIndex];
                   return GestureDetector(
-                    onTap: () => _showProductReviews(index),
+                    onTap: () => _showProductReviews(gridIndex),
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
@@ -127,7 +247,7 @@ class _FoodState extends State<Food> {
                         child: Stack(
                           children: [
                             Image.asset(
-                              imagePaths[index],
+                              imagePaths[originalIndex],
                               fit: BoxFit.cover,
                               width: double.infinity,
                               height: double.infinity,
@@ -153,7 +273,7 @@ class _FoodState extends State<Food> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    titles[index],
+                                    titles[originalIndex],
                                     style: const TextStyle(
                                       fontSize: 16,
                                       color: Colors.white,
@@ -162,7 +282,7 @@ class _FoodState extends State<Food> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    subtitles[index],
+                                    subtitles[originalIndex],
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: Colors.white.withOpacity(0.8),
@@ -176,7 +296,7 @@ class _FoodState extends State<Food> {
                                         children: [
                                           const Icon(Icons.star, color: Colors.amber, size: 16),
                                           Text(
-                                            ' ${ratings[index]}',
+                                            ' ${ratings[originalIndex]}',
                                             style: const TextStyle(
                                               fontSize: 14,
                                               color: Colors.white,
@@ -192,7 +312,7 @@ class _FoodState extends State<Food> {
                                           borderRadius: BorderRadius.circular(8),
                                         ),
                                         child: Text(
-                                          pricing[index],
+                                          pricing[originalIndex],
                                           style: const TextStyle(
                                             fontSize: 14,
                                             color: Colors.white,

@@ -58,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    hintText: 'Rechercher...',
+                    hintText: 'Search products...',
                     prefixIcon: Icon(Icons.search, color: Colors.green[700]),
                     suffixIcon: IconButton(
                       icon: Icon(Icons.filter_list, color: Colors.green[700]),
