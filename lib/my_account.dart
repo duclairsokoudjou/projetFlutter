@@ -7,6 +7,15 @@ import 'custom_scaffold.dart';
 class MyAccount extends StatelessWidget {
   const MyAccount({super.key});
 
+  // Méthode pour calculer le total d'une commande
+  double calculateOrderTotal(List<Purchase> purchases) {
+    double total = 0.0;
+    for (var purchase in purchases) {
+      total += purchase.price * purchase.quantity;  // Calcul du total de la commande
+    }
+    return total;
+  }
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -96,17 +105,24 @@ class MyAccount extends StatelessWidget {
                     );
                   } else {
                     List<Purchase> purchases = snapshot.data!;
+
                     return ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: purchases.length,
                       itemBuilder: (context, index) {
                         final purchase = purchases[index];
+
+                        // Calcul du total pour chaque article (prix * quantité)
+                        double itemTotal = purchase.price * purchase.quantity;
+
                         return Card(
                           margin: const EdgeInsets.all(8.0),
                           child: ListTile(
                             title: Text(purchase.productName),
-                            subtitle: Text('Prix: \$${purchase.price} x${purchase.quantity}'), // Affichage de la quantité
+                            subtitle: Text(
+                              'Prix: \$${purchase.price} x ${purchase.quantity} = \$${itemTotal.toStringAsFixed(2)}', // Affichage du total de l'article
+                            ),
                             trailing: Text(DateFormat.yMMMd().format(purchase.date)),
                           ),
                         );
