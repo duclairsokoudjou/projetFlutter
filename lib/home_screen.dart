@@ -15,8 +15,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
 
   List<CardItem> cardItems = [];
-  String searchText = '';
 
+=======
+  String searchtext = '';
 
   @override
   void initState(){
@@ -33,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     
     return GestureDetector(
       onTap: (){
@@ -75,8 +77,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           icon: Icon(Icons.filter_list)
                       ),
                     ],
+
                   ),
+      
                 ),
+
 
               ),
               Expanded(
@@ -94,6 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
       showBottomNavBar: true,
       initialIndex: 0,
     ));
+
   }
 
   Widget buildCard(CardItem cardItem){

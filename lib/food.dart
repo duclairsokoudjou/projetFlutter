@@ -42,7 +42,9 @@ class _FoodState extends State<Food> {
   @override
   Widget build(BuildContext context) {
     return CustomScaffold(
+
       body: SafeArea(
+
         child: Column(
           children: [
             Container(
@@ -51,6 +53,7 @@ class _FoodState extends State<Food> {
               decoration: BoxDecoration(color: Colors.green[700]),
               child: Container(
                 color: Colors.white,
+
                 margin: const EdgeInsets.all(16.0),
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Row(
@@ -156,9 +159,26 @@ class _FoodState extends State<Food> {
             ),
           ],
         ),
+
       ),
       showBottomNavBar: true,
       initialIndex: 1,
     );
   }
+}
+
+class FoodItem{
+  final String image;
+  final String title;
+  final String subtitle;
+  final double rating;
+  final double price;
+
+  FoodItem({
+  required this.image,
+    required this.title,
+    required this.subtitle,
+    required this.rating,
+    required this.price
+  });
 }
