@@ -12,8 +12,13 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<CardItem> cardItems = [];
-  String searchText = '';
 
+<<<<<<< HEAD
+=======
+=======
+  String searchtext = '';
+
+>>>>>>> f3a05154165db87c3e06be3f32389e1249c2f0a7
   @override
   void initState() {
     super.initState();
@@ -28,10 +33,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     final filteredItems = cardItems.where(
       (item) => item.title.toLowerCase().contains(searchText.toLowerCase())
     ).toList();
 
+=======
+
+    
+>>>>>>> f3a05154165db87c3e06be3f32389e1249c2f0a7
     return GestureDetector(
       onTap: () {
         FocusScopeNode currentFocus = FocusScope.of(context);
@@ -73,8 +83,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         icon: const Icon(Icons.filter_list),
                       ),
                     ],
+
                   ),
+      
                 ),
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> f3a05154165db87c3e06be3f32389e1249c2f0a7
               ),
               Expanded(
                 child: filteredItems.isEmpty
@@ -91,7 +108,14 @@ class _HomeScreenState extends State<HomeScreen> {
         showBottomNavBar: true,
         initialIndex: 0,
       ),
+<<<<<<< HEAD
     );
+=======
+      showBottomNavBar: true,
+      initialIndex: 0,
+    ));
+
+>>>>>>> f3a05154165db87c3e06be3f32389e1249c2f0a7
   }
 
   Widget buildCard(CardItem cardItem) {
