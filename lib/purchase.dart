@@ -2,7 +2,7 @@ class Purchase {
   final String productName;
   final double price;
   final DateTime date;
-  final int quantity;
+  final int quantity;  // Ajout de la quantité ici
   final String purchaseId;
 
   Purchase({
@@ -13,21 +13,23 @@ class Purchase {
     required this.purchaseId,
   });
 
-  Map<String, dynamic> toJson() => {
-    'productName': productName,
-    'price': price,
-    'date': date.toIso8601String(),
-    'quantity': quantity,
-    'purchaseId': purchaseId,
-  };
+  Map<String, dynamic> toMap() {
+    return {
+      'productName': productName,
+      'price': price,
+      'date': date.toIso8601String(),
+      'quantity': quantity,
+      'purchaseId': purchaseId,
+    };
+  }
 
-  factory Purchase.fromJson(Map<String, dynamic> json) {
+  factory Purchase.fromMap(Map<String, dynamic> map) {
     return Purchase(
-      productName: json['productName'],
-      price: json['price'],
-      date: DateTime.parse(json['date']),
-      quantity: json['quantity'],
-      purchaseId: json['purchaseId'],
+      productName: map['productName'],
+      price: map['price'],
+      date: DateTime.parse(map['date']),
+      quantity: map['quantity'],
+      purchaseId: map['purchaseId'],
     );
   }
 }

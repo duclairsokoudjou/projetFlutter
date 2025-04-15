@@ -26,17 +26,30 @@ class _MyCartState extends State<MyCart> {
   }
 
 void processCheckout(List<CartItem> cartItems) async {
+  final DateTime now = DateTime.now();
+  final String orderId = now.toIso8601String(); // Utilisation d'un ID unique pour la commande
+
+  List<Purchase> purchasesToAdd = [];
+
   for (var item in cartItems) {
     Purchase purchase = Purchase(
       productName: item.name,
       price: item.price,
-      date: DateTime.now(),
+      date: now,  // La même date pour tous les produits de la même commande
       quantity: item.quantity,
-      purchaseId: DateTime.now().toIso8601String() + item.name,
+      purchaseId: orderId,  // Le même ID pour toute la commande
     );
-    await PurchaseService.addPurchase(purchase);
+
+    purchasesToAdd.add(purchase);  // Ajouter chaque achat à une liste temporaire
+  }
+
+  // Après avoir collecté tous les achats, ajoutons-les tous à SharedPreferences
+  for (var purchase in purchasesToAdd) {
+    await PurchaseService.addPurchase(purchase);  // Enregistrer chaque achat
   }
 }
+
+
 
 
 

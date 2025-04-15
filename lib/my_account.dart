@@ -23,12 +23,12 @@ class MyAccount extends StatelessWidget {
                 height: 80,
                 width: screenWidth,
                 decoration: BoxDecoration(color: Colors.green[700]),
-                child: const Padding(
-                  padding: EdgeInsets.only(left: 20),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 20),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    children: const [
                       Text(
                         'e-Commerce App',
                         style: TextStyle(fontSize: 22, color: Colors.white),
@@ -91,10 +91,8 @@ class MyAccount extends StatelessWidget {
                     return Center(child: Text("Erreur : ${snapshot.error}"));
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return const Center(
-                      child: Text(
-                        "Tu n'as pas encore effectué d'achat.",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                      ),
+                      child: Text("Tu n'as pas encore effectué d'achat.",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                     );
                   } else {
                     List<Purchase> purchases = snapshot.data!;
@@ -107,8 +105,8 @@ class MyAccount extends StatelessWidget {
                         return Card(
                           margin: const EdgeInsets.all(8.0),
                           child: ListTile(
-                            title: Text('${purchase.productName} (${purchase.quantity}x)'),
-                            subtitle: Text('Total: \$${(purchase.price * purchase.quantity).toStringAsFixed(2)}'),
+                            title: Text(purchase.productName),
+                            subtitle: Text('Prix: \$${purchase.price} x${purchase.quantity}'), // Affichage de la quantité
                             trailing: Text(DateFormat.yMMMd().format(purchase.date)),
                           ),
                         );
