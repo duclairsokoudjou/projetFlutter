@@ -15,6 +15,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
 
   List<CardItem> cardItems = [];
+  String searchText = '';
+
 
   @override
   void initState(){
@@ -31,7 +33,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScaffold(
+    
+    return GestureDetector(
+      onTap: (){
+        FocusScopeNode currentFocus = FocusScope.of(context);
+        if (!currentFocus.hasPrimaryFocus && currentFocus.focusedChild != null) { 
+          currentFocus.focusedChild?.unfocus();
+      }},
+    
+     child : CustomScaffold(
       body: SafeArea(
           child: Column(
             children: [
@@ -53,6 +63,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               border: InputBorder.none,
                               icon : Icon(Icons.search),
                             ),
+                            onChanged: (value){
+                              setState(() {
+                                searchText = value;
+                              });
+                            },
                           )
                       ),
                       IconButton(
@@ -69,9 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisCount: 2,
                   physics: NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
-                  children: cardItems.map((cardItem){
-                    return buildCard(cardItem);
-                }).toList(),
+                  children: cardItems.where((cardItem) => cardItem.title.toLowerCase().contains(searchText.toLowerCase()) ).map((cardItem){ return buildCard(cardItem)}).toList()
 
                 ),
               )
@@ -80,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       showBottomNavBar: true,
       initialIndex: 0,
-    );
+    ));
   }
 
   Widget buildCard(CardItem cardItem){
