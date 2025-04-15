@@ -203,7 +203,11 @@ class _MyAccountState extends State<MyAccount> {
   Future<void> _logout() async {
     try {
       await _auth.signOut();
-      Navigator.pushReplacementNamed(context, '/signin');
+      Navigator.pushNamedAndRemoveUntil(
+        context, 
+        '/signin', 
+        (route) => false
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
@@ -217,7 +221,11 @@ class _MyAccountState extends State<MyAccount> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Account deleted successfully')),
       );
-      Navigator.pushReplacementNamed(context, '/signup');
+      Navigator.pushNamedAndRemoveUntil(
+        context, 
+        '/signup', 
+        (route) => false
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
@@ -233,7 +241,12 @@ class _MyAccountState extends State<MyAccount> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (!snapshot.hasData) {
-          return const Center(child: Text('Please log in.'));
+          return const Center(
+            child: Text(
+              'Please log in',
+              style: TextStyle(fontSize: 24),
+            ),
+          );
         } else {
           User user = snapshot.data!;
 
@@ -298,10 +311,17 @@ class _MyAccountState extends State<MyAccount> {
                               _buildInfoRow(Icons.person, 'Name:', user.displayName ?? 'Not set'),
                               _buildInfoRow(Icons.email, 'Email:', user.email ?? 'Not set'),
                               const SizedBox(height: 30),
-                              _buildActionButton('Update Name', Icons.edit, () => _updateName(user)),
-                              _buildActionButton('Change Password', Icons.lock, () => _changePassword(user)),
-                              const SizedBox(height: 30),
-                              _buildDangerSection(user),
+                              Column(
+                                children: [
+                                  _buildActionButton('Update Name', Icons.edit, Colors.green, () => _updateName(user)),
+                                  const SizedBox(height: 15),
+                                  _buildActionButton('Change Password', Icons.lock, Colors.green, () => _changePassword(user)),
+                                  const SizedBox(height: 15),
+                                  _buildActionButton('Logout', Icons.exit_to_app, Colors.grey, _logout),
+                                  const SizedBox(height: 15),
+                                  _buildActionButton('Delete Account', Icons.delete, Colors.red, () => _deleteAccount(user)),
+                                ],
+                              ),
                             ],
                           ),
                         ),
@@ -311,68 +331,127 @@ class _MyAccountState extends State<MyAccount> {
                     // Historique des achats
                     Padding(
                       padding: const EdgeInsets.all(20),
-                      child: Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            children: [
-                              const Text(
-                                'Purchase History',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green,
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              children: [
+                                const Text(
+                                  'Purchase History',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 15),
-                              FutureBuilder<List<Purchase>>(
-                                future: PurchaseService.getPurchases(),
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState == ConnectionState.waiting) {
-                                    return const Center(child: CircularProgressIndicator());
-                                  } else if (snapshot.hasError) {
-                                    return Center(child: Text("Error: ${snapshot.error}"));
-                                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                                    return const Padding(
-                                      padding: EdgeInsets.symmetric(vertical: 20),
-                                      child: Text(
-                                        "No purchases found",
-                                        style: TextStyle(fontSize: 16, color: Colors.grey),
-                                      ),
-                                    );
-                                  } else {
-                                    return ListView.builder(
-                                      shrinkWrap: true,
-                                      physics: const NeverScrollableScrollPhysics(),
-                                      itemCount: snapshot.data!.length,
-                                      itemBuilder: (context, index) {
-                                        final purchase = snapshot.data![index];
-                                        return ListTile(
-                                          leading: const Icon(Icons.shopping_cart, color: Colors.green),
-                                          title: Text(purchase.productName),
-                                          subtitle: Text(
-                                            DateFormat('dd/MM/yyyy - HH:mm').format(purchase.date),
-                                            style: const TextStyle(fontSize: 12),
+                                const SizedBox(height: 15),
+                                FutureBuilder<List<Purchase>>(
+                                  future: PurchaseService.getPurchases(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return const Center(child: CircularProgressIndicator());
+                                    } else if (snapshot.hasError) {
+                                      return Center(child: Text("Error: ${snapshot.error}"));
+                                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                      return const Padding(
+                                        padding: EdgeInsets.symmetric(vertical: 20),
+                                        child: Text(
+                                          "No purchases found",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                                        ),
+                                      );
+                                    } else {
+                                      final purchases = snapshot.data!;
+                                      double totalAmount = purchases.fold(
+                                        0, 
+                                        (sum, item) => sum + (item.price * item.quantity)
+                                      );
+                                      int totalItems = purchases.fold(
+                                        0, 
+                                        (sum, item) => sum + item.quantity
+                                      );
+
+                                      return Column(
+                                        children: [
+                                          ListView.builder(
+                                            shrinkWrap: true,
+                                            physics: const NeverScrollableScrollPhysics(),
+                                            itemCount: purchases.length,
+                                            itemBuilder: (context, index) {
+                                              final purchase = purchases[index];
+                                              return ListTile(
+                                                leading: const Icon(Icons.shopping_cart, color: Colors.green),
+                                                title: Text(purchase.productName),
+                                                subtitle: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text('Quantity: ${purchase.quantity}'),
+                                                    Text(
+                                                      DateFormat('dd/MM/yyyy - HH:mm').format(purchase.date),
+                                                      style: const TextStyle(fontSize: 12),
+                                                    ),
+                                                  ],
+                                                ),
+                                                trailing: Column(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Text(
+                                                      '\$${purchase.price.toStringAsFixed(2)}/u',
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: Colors.grey[600],
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      '\$${(purchase.price * purchase.quantity).toStringAsFixed(2)}',
+                                                      style: const TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Colors.green,
+                                                        fontSize: 16,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            },
                                           ),
-                                          trailing: Text(
-                                            '${purchase.price} €',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.green,
-                                              fontSize: 16,
+                                          const Divider(),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(
+                                                  'Total Items: $totalItems',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.green,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  'Total Amount: \$${totalAmount.toStringAsFixed(2)}',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.green,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
-                                        );
-                                      },
-                                    );
-                                  }
-                                },
-                              ),
-                            ],
+                                        ],
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -418,7 +497,7 @@ class _MyAccountState extends State<MyAccount> {
     );
   }
 
-  Widget _buildActionButton(String text, IconData icon, VoidCallback onPressed) {
+  Widget _buildActionButton(String text, IconData icon, Color color, VoidCallback onPressed) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
@@ -426,50 +505,13 @@ class _MyAccountState extends State<MyAccount> {
         label: Text(text),
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green,
+          backgroundColor: color,
           padding: const EdgeInsets.symmetric(vertical: 15),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildDangerSection(User user) {
-    return Column(
-      children: [
-        const Divider(),
-        const SizedBox(height: 20),
-        const Text(
-          'Danger Zone',
-          style: TextStyle(
-            color: Colors.red,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        const SizedBox(height: 15),
-        ElevatedButton.icon(
-          icon: const Icon(Icons.exit_to_app, color: Colors.white),
-          label: const Text('Logout'),
-          onPressed: _logout,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.grey[700],
-            padding: const EdgeInsets.symmetric(vertical: 15),
-          ),
-        ),
-        const SizedBox(height: 10),
-        ElevatedButton.icon(
-          icon: const Icon(Icons.delete_forever, color: Colors.white),
-          label: const Text('Delete Account'),
-          onPressed: () => _deleteAccount(user),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            padding: const EdgeInsets.symmetric(vertical: 15),
-          ),
-        ),
-      ],
     );
   }
 }

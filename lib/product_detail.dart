@@ -26,7 +26,7 @@ class _ProductDetailState extends State<ProductDetail> {
   void addToCart() {
     CartItem newItem = CartItem(name: widget.name, price: widget.price, quantity: 1);
     final provider = Provider.of<CartProvider>(context, listen: false);
-
+    
     final index = provider.cartitems.indexWhere((item) => item.name == newItem.name);
     if (index != -1) {
       provider.cartitems[index].quantity++;
@@ -37,119 +37,171 @@ class _ProductDetailState extends State<ProductDetail> {
   }
 
   void selectButton(int buttonIndex) {
-    setState(() {
-      selectedButton = buttonIndex;
-    });
+    setState(() => selectedButton = buttonIndex);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isInCart = Provider.of<CartProvider>(context).cartitems.any((item) => item.name == widget.name);
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0.0,
+        backgroundColor: Colors.white,
+        elevation: 4,
+        shadowColor: Colors.black.withOpacity(0.1),
         leading: IconButton(
-          onPressed: () => Navigator.of(context).pop(),
           icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          widget.name,
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
       ),
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          CarouselSlider(
-            options: CarouselOptions(
-              height: 200.0,
-              enlargeCenterPage: true,
-              onPageChanged: (index, _) {
-                setState(() => _currentSlide = index);
-              },
-            ),
-            items: widget.images.map((image) {
-              return Builder(
-                builder: (context) => Image.asset(image, fit: BoxFit.cover),
-              );
-            }).toList(),
-          ),
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Text(
-                  widget.name,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                const Spacer(),
-                Text('Price: \$${widget.price.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Padding(
-            padding: EdgeInsets.all(18.0),
-            child: Text(
-              'Product Description',
-              style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.bold),
-            ),
-          ),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16.0),
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8.0)),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('* This is an amazing shirt', style: TextStyle(fontSize: 16)),
-                Text('* Very comfortable and stylish', style: TextStyle(fontSize: 16)),
-                Text('* Perfect for any occasion', style: TextStyle(fontSize: 16)),
-              ],
-            ),
-          ),
-          const Spacer(),
-          Row(
+          // Carrousel amélioré
+          Stack(
+            alignment: Alignment.bottomCenter,
             children: [
-              Expanded(
-                child: Container(
-                  height: 60,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      selectButton(1);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: selectedButton == 1 ? Colors.green : Colors.white,
-                    ),
-                    child: Text(
-                      'RESELL',
-                      style: TextStyle(
-                        color: selectedButton == 1 ? Colors.white : Colors.black,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
+              CarouselSlider(
+                options: CarouselOptions(
+                  height: 300,
+                  viewportFraction: 1.0,
+                  enlargeCenterPage: true,
+                  onPageChanged: (index, _) => setState(() => _currentSlide = index),
                 ),
-              ),
-              Expanded(
-                child: Container(
-                  height: 60,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      selectButton(2);
-                      addToCart();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: selectedButton == 2 ? Colors.green : Colors.white,
-                    ),
-                    child: Text(
-                      'ADD TO CART',
-                      style: TextStyle(
-                        color: selectedButton == 2 ? Colors.white : Colors.black,
-                        fontSize: 18,
-                      ),
+                items: widget.images.map((image) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    image: DecorationImage(
+                      image: AssetImage(image),
+                      fit: BoxFit.cover,
                     ),
                   ),
+                )).toList(),
+              ),
+              Positioned(
+                bottom: 20,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: widget.images.asMap().entries.map((entry) {
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: _currentSlide == entry.key ? 20 : 8,
+                      height: 8,
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        color: _currentSlide == entry.key 
+                            ? Colors.green[700]
+                            : Colors.white.withOpacity(0.8),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
             ],
+          ),
+          
+          // Section informations
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        widget.name,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.green[100],
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '\$${widget.price.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green[800]
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                
+                // Description améliorée
+                const Text(
+                  'Description',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Ce produit haut de gamme allie confort et style. Parfait pour toutes occasions, '
+                  'il offre une coupe moderne et une durabilité exceptionnelle.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    height: 1.5,
+                    color: Colors.black54
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Bouton d'action amélioré
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: Icon(
+                  isInCart ? Icons.check_circle : Icons.shopping_cart,
+                  color: Colors.white,
+                ),
+                label: Text(
+                  isInCart ? 'Déjà dans le panier' : 'Ajouter au panier',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isInCart ? Colors.grey : Colors.green[700],
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                ),
+                onPressed: isInCart ? null : () {
+                  selectButton(2);
+                  addToCart();
+                },
+              ),
+            ),
           ),
         ],
       ),

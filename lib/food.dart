@@ -10,6 +10,7 @@ class Food extends StatefulWidget {
 }
 
 class _FoodState extends State<Food> {
+  // Variables existantes
   final List<String> imagePaths = [
     'images/1.jpeg',
     'images/2.jpeg',
@@ -18,10 +19,31 @@ class _FoodState extends State<Food> {
     'images/5.jpeg',
   ];
 
-  final List<String> titles = ['Spaghettis', 'Pizza', 'Burger', 'Fries', 'Salad'];
+  final List<String> titles = ['Shirt 1', 'Shirt 2', 'Shirt 3', 'Shirt 4', 'Shirt 5'];
   final List<String> ratings = ['4.5', '4.2', '4.8', '4.0', '4.3'];
-  final List<String> subtitles = ['Italian', 'Cheesy Goodness', 'Juicy & Tasty', 'Crispy Delight', 'Healthy Bowl'];
-  final List<String> pricing = ['\$10', '\$12', '\$8', '\$5', '\$7'];
+  final List<String> subtitles = ['Classic Fit', 'Slim Fit', 'Premium Cotton', 'Designer Edition', 'Summer Collection'];
+ final List<String> pricing = ['\$10', '\$20', '\$30', '\$40', '\$50'];
+
+  // Nouveaux états pour la recherche
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  // Filtrage dynamique
+  List<int> get _filteredIndices {
+    return List.generate(titles.length, (index) => index)
+        .where((index) => titles[index].toLowerCase().contains(_searchQuery.toLowerCase()))
+        .toList();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _showProductReviews(int index) {
+    // ... [Le code existant de _showProductReviews reste inchangé] ...
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,108 +51,159 @@ class _FoodState extends State<Food> {
       body: SafeArea(
         child: Column(
           children: [
+            // Barre de recherche avec filtre dynamique
             Container(
               height: 80,
-              width: MediaQuery.of(context).size.width,
-              decoration: BoxDecoration(color: Colors.green[700]),
+              decoration: BoxDecoration(
+                color: Colors.green[700],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
               child: Container(
-                color: Colors.white,
-                margin: const EdgeInsets.all(16.0),
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Row(
-                  children: [
-                    const Expanded(
-                      child: TextField(
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          icon: Icon(Icons.search),
-                        ),
-                      ),
+                margin: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher un produit...',
+                    border: InputBorder.none,
+                    prefixIcon: Icon(Icons.search, color: Colors.green[700]),
+                    suffixIcon: IconButton(
+                      icon: Icon(Icons.close, color: Colors.green[700]),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() {
+                          _searchQuery = '';
+                        });
+                      },
                     ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.filter_list),
-                    ),
-                  ],
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
                 ),
               ),
             ),
+            
+            // Grille filtrée
             Expanded(
               child: GridView.builder(
+                padding: const EdgeInsets.all(16),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: 0.8,
+                  childAspectRatio: 0.75,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
                 ),
-                itemCount: imagePaths.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    margin: const EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16.0),
-                      image: DecorationImage(
-                        image: AssetImage(imagePaths[index]),
-                        fit: BoxFit.cover,
-                        onError: (error, stackTrace) {
-                          // Si une image est manquante
-                          debugPrint('Image ${imagePaths[index]} introuvable : $error');
-                        },
-                      ),
-                    ),
+                itemCount: _filteredIndices.length,
+                itemBuilder: (context, gridIndex) {
+                  final index = _filteredIndices[gridIndex];
+                  return GestureDetector(
+                    onTap: () => _showProductReviews(index),
                     child: Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16.0),
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.black.withOpacity(0.6),
-                            Colors.transparent,
-                          ],
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Stack(
                           children: [
-                            Text(
-                              titles[index],
-                              style: const TextStyle(
-                                fontSize: 20,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                            Image.asset(
+                              imagePaths[index],
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                              errorBuilder: (context, error, stackTrace) => Container(
+                                color: Colors.grey[200],
+                                child: const Icon(Icons.image_not_supported, color: Colors.grey),
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              subtitles[index],
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.white70,
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: [
+                                    Colors.black.withOpacity(0.7),
+                                    Colors.transparent,
+                                  ],
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  ratings[index] + " ★",
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.amberAccent,
-                                    fontWeight: FontWeight.bold,
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    titles[index],
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  pricing[index],
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    subtitles[index],
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white.withOpacity(0.8),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.star, color: Colors.amber, size: 16),
+                                          Text(
+                                            ' ${ratings[index]}',
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.green[700],
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          pricing[index],
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
