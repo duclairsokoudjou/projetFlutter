@@ -123,7 +123,9 @@ class ListOfOption extends StatelessWidget{
       leading: icon,
       title: Text(title),
       trailing: Icon(Icons.arrow_forward_ios_outlined, size: 16),
-      onTap: {}(),
+      onTap: () {
+
+      },
     );
   }
 }

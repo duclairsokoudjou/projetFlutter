@@ -116,6 +116,31 @@ class _SignInState extends State<SignIn> {
                     )
                 ),
               ),
+            ),
+
+            SizedBox(height: 30),
+            Center(
+              child: SizedBox(
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: (){},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                    side: BorderSide(color: Colors.grey),
+                  ),
+                  icon: Image.asset('images/google.jpeg'),
+                  label: Text(
+                    'Sign in with Google',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 16.0
+                    ),
+                  ),
+                ),
+              ),
             )
 
           ],
