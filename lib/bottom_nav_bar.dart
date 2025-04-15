@@ -79,10 +79,10 @@ class _BottomNavBarState extends State<BottomNavBar> {
       ),
       BottomNavigationBarItem(
           icon: Icon(
-            Icons.food_bank_outlined,
+            Icons.reviews_outlined,
             color: _selectedIndex == 1 ? Colors.green : Colors.black,
           ),
-          label: 'Foods'
+          label: 'Reviews'
       ),
       BottomNavigationBarItem(
           icon: Icon(

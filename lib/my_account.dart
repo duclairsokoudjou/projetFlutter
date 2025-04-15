@@ -16,233 +16,367 @@ class _MyAccountState extends State<MyAccount> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   late TextEditingController _nameController;
   late TextEditingController _passwordController;
+  late TextEditingController _newPasswordController;
+  late TextEditingController _confirmPasswordController;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController();
     _passwordController = TextEditingController();
+    _newPasswordController = TextEditingController();
+    _confirmPasswordController = TextEditingController();
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _passwordController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  // Fonction pour mettre à jour le nom de l'utilisateur
-  void _updateName(User user) async {
-    try {
-      await user.updateDisplayName(_nameController.text);
-      await user.reload();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nom mis à jour avec succès')),
-      );
-      setState(() {});  // Recharger les informations utilisateur
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur : ${e.toString()}')),
-      );
-    }
+  Future<void> _updateName(User user) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Update Name'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _passwordController,
+                decoration: const InputDecoration(
+                  labelText: 'Current Password',
+                  prefixIcon: Icon(Icons.lock),
+                  border: OutlineInputBorder(),
+                ),
+                obscureText: true,
+              ),
+              const SizedBox(height: 15),
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'New Name',
+                  prefixIcon: Icon(Icons.person),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                String password = _passwordController.text.trim();
+                String newName = _nameController.text.trim();
+
+                if (password.isEmpty || newName.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please fill all fields')),
+                  );
+                  return;
+                }
+
+                try {
+                  AuthCredential credential = EmailAuthProvider.credential(
+                    email: user.email!,
+                    password: password,
+                  );
+                  await user.reauthenticateWithCredential(credential);
+                  await user.updateDisplayName(newName);
+                  await user.reload();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Name updated successfully')),
+                  );
+                  setState(() {});
+                  Navigator.pop(context);
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: ${e.toString()}')),
+                  );
+                }
+              },
+              child: const Text('Update'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
-  // Fonction pour mettre à jour le mot de passe
-  void _updatePassword(User user) async {
-    try {
-      await user.updatePassword(_passwordController.text);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mot de passe mis à jour avec succès')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur : ${e.toString()}')),
-      );
-    }
+  Future<void> _changePassword(User user) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Change Password'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _passwordController,
+                decoration: const InputDecoration(
+                  labelText: 'Current Password',
+                  prefixIcon: Icon(Icons.lock),
+                  border: OutlineInputBorder(),
+                ),
+                obscureText: true,
+              ),
+              const SizedBox(height: 15),
+              TextField(
+                controller: _newPasswordController,
+                decoration: const InputDecoration(
+                  labelText: 'New Password',
+                  prefixIcon: Icon(Icons.password),
+                  border: OutlineInputBorder(),
+                ),
+                obscureText: true,
+              ),
+              const SizedBox(height: 15),
+              TextField(
+                controller: _confirmPasswordController,
+                decoration: const InputDecoration(
+                  labelText: 'Confirm Password',
+                  prefixIcon: Icon(Icons.verified_user),
+                  border: OutlineInputBorder(),
+                ),
+                obscureText: true,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                String currentPassword = _passwordController.text.trim();
+                String newPassword = _newPasswordController.text.trim();
+                String confirmPassword = _confirmPasswordController.text.trim();
+
+                if (currentPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please fill all fields')),
+                  );
+                  return;
+                }
+
+                if (newPassword != confirmPassword) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Passwords do not match')),
+                  );
+                  return;
+                }
+
+                try {
+                  AuthCredential credential = EmailAuthProvider.credential(
+                    email: user.email!,
+                    password: currentPassword,
+                  );
+                  await user.reauthenticateWithCredential(credential);
+                  await user.updatePassword(newPassword);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Password updated successfully')),
+                  );
+                  Navigator.pop(context);
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: ${e.toString()}')),
+                  );
+                }
+              },
+              child: const Text('Change'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
-  // Fonction pour supprimer le compte
-  void _deleteAccount(User user) async {
-    try {
-      await user.delete();
-      Navigator.of(context).pop(); // Retourner à l'écran précédent après suppression
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Compte supprimé avec succès')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur : ${e.toString()}')),
-      );
-    }
-  }
-
-  // Fonction pour la déconnexion
-  void _logout() async {
+  Future<void> _logout() async {
     try {
       await _auth.signOut();
-      Navigator.pushReplacementNamed(context, '/signin');  // Rediriger vers la page de connexion
+      Navigator.pushReplacementNamed(context, '/signin');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur : ${e.toString()}')),
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
+
+  Future<void> _deleteAccount(User user) async {
+    try {
+      await user.delete();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Account deleted successfully')),
+      );
+      Navigator.pushReplacementNamed(context, '/signup');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-
     return StreamBuilder<User?>(
-      stream: _auth.authStateChanges(),  // Suivi de l'état de connexion de l'utilisateur
+      stream: _auth.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (!snapshot.hasData) {
-          // Si l'utilisateur n'est pas connecté, rediriger vers la page de connexion
-          return const Center(child: Text('Veuillez vous connecter.'));
+          return const Center(child: Text('Please log in.'));
         } else {
-          User user = snapshot.data!;  // Utilisateur connecté
+          User user = snapshot.data!;
 
           return CustomScaffold(
             showBottomNavBar: true,
-            initialIndex: 2, // Onglet "Account" sélectionné
+            initialIndex: 2,
             body: SafeArea(
               child: SingleChildScrollView(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Header Vert
                     Container(
-                      height: 80,
-                      width: screenWidth,
-                      decoration: BoxDecoration(color: Colors.green[700]),
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 20),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'e-Commerce App',
-                              style: TextStyle(fontSize: 22, color: Colors.white),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              user.email ?? '', // Affichage de l'email actuel
-                              style: TextStyle(fontSize: 12, color: Colors.white),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Image.asset(
-                      'images/account.jpeg',
-                      height: 150,
-                      width: screenWidth,
-                      fit: BoxFit.cover,
-                    ),
-                    const SizedBox(height: 10),
-                    const Padding(
-                      padding: EdgeInsets.all(10.0),
-                      child: Text(
-                        'My Account',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
+                      height: 120,
+                      width: MediaQuery.of(context).size.width,
+                      color: Colors.green[700],
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Name: ${user.displayName ?? 'Nom non défini'}', // Affichage du nom
-                            style: TextStyle(fontSize: 16),
+                          const Text(
+                            'e-Commerce App',
+                            style: TextStyle(
+                              fontSize: 24,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Email: ${user.email}', // Affichage de l'email
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          const SizedBox(height: 8),
-                          ElevatedButton(
-                            onPressed: _logout,
-                            child: const Text('Logout'),
-                          ),
-                          const SizedBox(height: 20),
-                          ElevatedButton(
-                            onPressed: () {
-                              // Modifier le nom de l'utilisateur
-                              _updateName(user);
-                            },
-                            child: const Text('Update Name'),
-                          ),
-                          const SizedBox(height: 20),
-                          ElevatedButton(
-                            onPressed: () {
-                              // Modifier le mot de passe de l'utilisateur
-                              _updatePassword(user);
-                            },
-                            child: const Text('Change Password'),
-                          ),
-                          const SizedBox(height: 20),
-                          ElevatedButton(
-                            onPressed: () {
-                              // Supprimer le compte de l'utilisateur
-                              _deleteAccount(user);
-                            },
-                            child: const Text('Delete Account'),
+                            user.email ?? '',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white70,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    const Padding(
-                      padding: EdgeInsets.all(10.0),
-                      child: Text(
-                        'Purchase History',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+
+                    // Section Compte
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            children: [
+                              const Text(
+                                'Account Settings',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green,
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              _buildInfoRow(Icons.person, 'Name:', user.displayName ?? 'Not set'),
+                              _buildInfoRow(Icons.email, 'Email:', user.email ?? 'Not set'),
+                              const SizedBox(height: 30),
+                              _buildActionButton('Update Name', Icons.edit, () => _updateName(user)),
+                              _buildActionButton('Change Password', Icons.lock, () => _changePassword(user)),
+                              const SizedBox(height: 30),
+                              _buildDangerSection(user),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                    FutureBuilder<List<Purchase>>(
-                      future: PurchaseService.getPurchases(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(child: CircularProgressIndicator());
-                        } else if (snapshot.hasError) {
-                          return Center(child: Text("Erreur : ${snapshot.error}"));
-                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return const Center(
-                            child: Text("Tu n'as pas encore effectué d'achat.",
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                          );
-                        } else {
-                          List<Purchase> purchases = snapshot.data!;
 
-                          return ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: purchases.length,
-                            itemBuilder: (context, index) {
-                              final purchase = purchases[index];
-
-                              // Calcul du total pour chaque article (prix * quantité)
-                              double itemTotal = purchase.price * purchase.quantity;
-
-                              return Card(
-                                margin: const EdgeInsets.all(8.0),
-                                child: ListTile(
-                                  title: Text(purchase.productName),
-                                  subtitle: Text(
-                                    'Prix: \$${purchase.price} x ${purchase.quantity} = \$${itemTotal.toStringAsFixed(2)}', // Affichage du total de l'article
-                                  ),
-                                  trailing: Text(DateFormat.yMMMd().format(purchase.date)),
+                    // Historique des achats
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            children: [
+                              const Text(
+                                'Purchase History',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green,
                                 ),
-                              );
-                            },
-                          );
-                        }
-                      },
+                              ),
+                              const SizedBox(height: 15),
+                              FutureBuilder<List<Purchase>>(
+                                future: PurchaseService.getPurchases(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState == ConnectionState.waiting) {
+                                    return const Center(child: CircularProgressIndicator());
+                                  } else if (snapshot.hasError) {
+                                    return Center(child: Text("Error: ${snapshot.error}"));
+                                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                    return const Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 20),
+                                      child: Text(
+                                        "No purchases found",
+                                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                                      ),
+                                    );
+                                  } else {
+                                    return ListView.builder(
+                                      shrinkWrap: true,
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      itemCount: snapshot.data!.length,
+                                      itemBuilder: (context, index) {
+                                        final purchase = snapshot.data![index];
+                                        return ListTile(
+                                          leading: const Icon(Icons.shopping_cart, color: Colors.green),
+                                          title: Text(purchase.productName),
+                                          subtitle: Text(
+                                            DateFormat('dd/MM/yyyy - HH:mm').format(purchase.date),
+                                            style: const TextStyle(fontSize: 12),
+                                          ),
+                                          trailing: Text(
+                                            '${purchase.price} €',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.green,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -250,6 +384,92 @@ class _MyAccountState extends State<MyAccount> {
           );
         }
       },
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.green),
+          const SizedBox(width: 15),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton(String text, IconData icon, VoidCallback onPressed) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        icon: Icon(icon, color: Colors.white),
+        label: Text(text),
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.green,
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDangerSection(User user) {
+    return Column(
+      children: [
+        const Divider(),
+        const SizedBox(height: 20),
+        const Text(
+          'Danger Zone',
+          style: TextStyle(
+            color: Colors.red,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        const SizedBox(height: 15),
+        ElevatedButton.icon(
+          icon: const Icon(Icons.exit_to_app, color: Colors.white),
+          label: const Text('Logout'),
+          onPressed: _logout,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.grey[700],
+            padding: const EdgeInsets.symmetric(vertical: 15),
+          ),
+        ),
+        const SizedBox(height: 10),
+        ElevatedButton.icon(
+          icon: const Icon(Icons.delete_forever, color: Colors.white),
+          label: const Text('Delete Account'),
+          onPressed: () => _deleteAccount(user),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            padding: const EdgeInsets.symmetric(vertical: 15),
+          ),
+        ),
+      ],
     );
   }
 }
