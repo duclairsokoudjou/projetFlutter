@@ -15,6 +15,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
 
   List<CardItem> cardItems = [];
+  String searchtext = '';
 
   @override
   void initState(){
@@ -31,55 +32,71 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScaffold(
-      body: SafeArea(
-          child: Column(
-            children: [
-              Container(
-                height: 80,
-                width: MediaQuery.of(context).size.width,
-                decoration: BoxDecoration(color: Colors.green[700]),
-                child: Container(
-                  color: Colors.white,
-                  margin: EdgeInsets.all(16.0),
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                          child: TextField(
-                            decoration: InputDecoration(
-                              hintText: 'Search restaurants, cuisines & dishes',
-                              hintStyle: TextStyle(fontSize: 12.0, color: Colors.grey),
-                              border: InputBorder.none,
-                              icon : Icon(Icons.search),
-                            ),
-                          )
-                      ),
-                      IconButton(
-                          onPressed: (){},
-                          icon: Icon(Icons.filter_list)
-                      ),
-                    ],
+    return GestureDetector(
+      onTap: () {
+        FocusScopeNode currentFocus = FocusScope.of(context);
+        if(!currentFocus.hasPrimaryFocus && currentFocus.focusedChild != null){
+          currentFocus.focusedChild?.unfocus();
+        }
+      },
+      child: CustomScaffold(
+        body: SafeArea(
+            child: Column(
+              children: [
+                Container(
+                  height: 80,
+                  width: MediaQuery.of(context).size.width,
+                  decoration: BoxDecoration(color: Colors.green[700]),
+                  child: Container(
+                    color: Colors.white,
+                    margin: EdgeInsets.all(16.0),
+                    padding: EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                            child: TextField(
+                              decoration: InputDecoration(
+                                hintText: 'Search restaurants, cuisines & dishes',
+                                hintStyle: TextStyle(fontSize: 12.0, color: Colors.grey),
+                                border: InputBorder.none,
+                                icon : Icon(Icons.search),
+                              ),
+                              onChanged: (value){
+                                setState(() {
+                                  searchtext = value;
+                                });
+                              }
+                            )
+                        ),
+                        IconButton(
+                            onPressed: (){},
+                            icon: Icon(Icons.filter_list)
+                        ),
+                      ],
+                    ),
                   ),
+      
                 ),
-
-              ),
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  physics: NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  children: cardItems.map((cardItem){
-                    return buildCard(cardItem);
-                }).toList(),
-
-                ),
-              )
-            ],
-          )
+                Expanded(
+                  child: GridView.count(
+                    crossAxisCount: 2,
+                    physics: NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    children: cardItems
+                        .where((cardItem) => cardItem.title
+                        .toLowerCase()
+                        .contains(searchtext.toLowerCase())).map((cardItem){
+                      return buildCard(cardItem);
+                  }).toList()
+      
+                  ),
+                )
+              ],
+            )
+        ),
+        showBottomNavBar: true,
+        initialIndex: 0,
       ),
-      showBottomNavBar: true,
-      initialIndex: 0,
     );
   }
 
