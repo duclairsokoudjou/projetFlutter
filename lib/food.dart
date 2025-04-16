@@ -24,11 +24,11 @@ class _FoodState extends State<Food> {
   final List<String> subtitles = ['Classic Fit', 'Slim Fit', 'Premium Cotton', 'Designer Edition', 'Summer Collection'];
   final List<String> pricing = ['\$10', '\$20', '\$30', '\$40', '\$50'];
 
-  // Nouveaux états pour la recherche
+  
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
-  // Données des avis
+
   final List<List<Map<String, dynamic>>> _productReviews = [
     [
       {'user': 'Jean D.', 'comment': 'Très confortable', 'stars': 4, 'date': '15/03/2024'},

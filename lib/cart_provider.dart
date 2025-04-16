@@ -15,10 +15,10 @@ class CartProvider with ChangeNotifier {
     final index = cartitems.indexWhere((cartItem) => cartItem.name == item.name);
 
     if (index != -1) {
-      // Si l'article existe, on incrémente la quantité
+     
       cartitems[index].quantity += item.quantity;
     } else {
-      // Sinon, on ajoute normalement
+     
       cartitems.add(item);
     }
     notifyListeners();

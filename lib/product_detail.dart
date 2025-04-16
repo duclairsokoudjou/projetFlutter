@@ -64,7 +64,7 @@ class _ProductDetailState extends State<ProductDetail> {
       ),
       body: Column(
         children: [
-          // Carrousel amélioré
+          // Carrousel 
           Stack(
             alignment: Alignment.bottomCenter,
             children: [

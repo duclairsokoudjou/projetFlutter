@@ -1,10 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-
 import 'package:login/cart_provider.dart';
-
 import 'package:login/home_screen.dart';
-
 import 'package:login/login_screen.dart';
 import 'package:login/my_cart.dart';
 import 'package:login/sign_in.dart';
@@ -30,8 +27,8 @@ class MyApp extends StatelessWidget {
       home: SignUP(),
       
       routes: {
-        '/signin': (context) => SignUP(),    // <-- ton écran de connexion
-        '/signup': (context) => SignUP(),    // <-- ton écran d'inscription
+        '/signin': (context) => SignUP(),    
+        '/signup': (context) => SignUP(),   
 
       },
     );
